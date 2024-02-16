@@ -13,6 +13,12 @@ fi
 
 cd $srcname
 
-declare -f build > .fwbuild
+# Prepare sources: checkout, apply any patches
+prepare
 
+# Build: Execute the build() function of the FWBUILD inside the docker container
+declare -f build > .fwbuild
 docker run --rm -it -v $PWD:$PWD -w $PWD $container bash -c "source .fwbuild && build"
+
+# Package: Any post-build packaging, checksumming etc
+package
