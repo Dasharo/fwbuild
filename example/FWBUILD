@@ -1,0 +1,28 @@
+romname=novacustom-nv4x-heads
+_tag=0.9.0
+romver=${_tag//-/}
+romrel=2
+pkgdesc='Heads firmware for NovaCustom NV4x'
+arch=(x86_64)
+license=(GPL2)
+container=3mdeb/heads-docker:3.0.1
+srcname=heads
+_tag=novacustom_nv4x_adl_v0.9.0-rc2
+source=https://github.com/Dasharo/$srcname.git
+
+# preparation, checkout, applying patches, etc
+prepare() {
+	echo "=> PREPARE"
+	git checkout $_tag
+}
+
+# do the build, this is executed inside of the docker container
+build() {
+	echo "=> BUILD"
+	make BOARD=nitropad-nv41
+}
+
+# copy and rename the binary, create zip, checksums, uefi capsule
+package() {
+	echo "=> PACKAGE"
+}

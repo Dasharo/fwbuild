@@ -1,0 +1,18 @@
+#!/bin/bash
+
+source FWBUILD
+
+mkdir -p src
+cd src
+
+if [ -d $srcname ]; then
+	echo "Source already present, skipping"
+else
+	git clone $source
+fi
+
+cd $srcname
+
+declare -f build > .fwbuild
+
+docker run --rm -it -v $PWD:$PWD -w $PWD $container bash -c "source .fwbuild && build"
