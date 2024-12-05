@@ -2,6 +2,21 @@
 
 source FWBUILD
 
+missing_dependency=0
+if [ -n "$depends" ]; then
+	for dep in "${depends[@]}"; do
+		if [ ! -f $dep ]; then
+			echo "Missing dependency: $dep"
+			missing_dependency=1
+		fi
+	done
+fi
+
+if [ $missing_dependency = 1 ]; then
+	echo "Exiting due to missing dependencies!"
+	exit 1
+fi
+
 mkdir -p src
 cd src
 
@@ -18,7 +33,9 @@ prepare
 
 # Build: Execute the build() function of the FWBUILD inside the docker container
 declare -f build > .fwbuild
-docker run --rm -it -v $PWD:$PWD -w $PWD $container bash -c "source .fwbuild && build"
+
+docker_pwd=${docker_pwd:=$PWD}
+docker run --rm -it -v $PWD:$docker_pwd -w $docker_pwd $container bash -c "source .fwbuild && build"
 
 # Package: Any post-build packaging, checksumming etc
 package
