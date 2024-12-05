@@ -1,0 +1,63 @@
+romname=novacustom-v540tu-heads
+pkgdesc='Dasharo (coreboot + UEFI) for NovaCustom V540TU'
+arch=(x86_64)
+license=(GPL2)
+container=coreboot/coreboot-sdk:2023-11-24_2731fa619b
+docker_pwd=/home/coreboot/coreboot
+srcname=coreboot
+_tag=novacustom_v54x_mtl_v0.9.0
+romver=${_tag//-/}
+romrel=1
+source=https://github.com/Dasharo/$srcname.git
+outfile=novacustom_v540tu_v0.9.0.rom
+depends=(
+	novacustom_v540tu_ec.rom
+)
+
+# preparation, checkout, applying patches, etc
+prepare() {
+	echo "=> PREPARE"
+	git checkout $_tag
+	git submodule update --init --checkout
+
+	# Obtain MeteorLake FSP and GOP
+	git clone https://github.com/Dasharo/dasharo-blobs.git ../dasharo-blobs
+	pushd ../dasharo-blobs
+	git checkout edc7e8330fdae328c661a3d8e31bf4ccdcc6497e
+	popd
+	mkdir -p 3rdparty/blobs/mainboard/clevo/mtl-h/FSP/MeteorLake
+	cp -r ../dasharo-blobs/novacustom/v5x0tu/MeteorLakeFspBinPkg/* 3rdparty/blobs/mainboard/clevo/mtl-h/FSP/MeteorLake
+	cp ../dasharo-blobs/novacustom/v5x0tu/IntelGopDriver.efi 3rdparty/blobs/mainboard/clevo/mtl-h/
+
+	# Obtain LAN ROM blob frop release binary
+	wget -O UEFIExtract_NE_A68_x64_linux.zip https://github.com/LongSoft/UEFITool/releases/download/A68/UEFIExtract_NE_A68_x64_linux.zip
+	unzip -o UEFIExtract_NE_A68_x64_linux.zip
+	wget -O novacustom_v54x_mtl_v0.9.0.rom https://dl.3mdeb.com/open-source-firmware/Dasharo/novacustom_v54x_mtl/v0.9.0/novacustom_v54x_mtl_v0.9.0.rom
+
+	# Prepare EC firmware
+	cp ../../novacustom_v540tu_ec.rom ec.rom
+}
+
+# do the build, this is executed inside of the docker container
+build() {
+	echo "=> BUILD"
+
+	# Extract and transfer LAN ROM blob
+	make -C util/cbfstool
+	util/cbfstool/cbfstool novacustom_v54x_mtl_v0.9.0.rom extract -r COREBOOT -f payload -n fallback/payload -m x86
+	./uefiextract payload DEB917C0-C56A-4860-A05B-BF2F22EBB717
+	cp payload.dump/2\ 8C8CE578-8A3D-4F1C-9935-896185C32DD3/82\ DEB917C0-C56A-4860-A05B-BF2F22EBB717/1\ PE32\ image\ section/body.bin 3rdparty/blobs/mainboard/clevo/mtl-h/LanRom.efi
+	cp src/vendorcode/intel/fsp/fsp2_0/meteorlake/MemInfoHob.h 3rdparty/blobs/mainboard/clevo/mtl-h/FSP/MeteorLake/Include/
+
+	cp ../../novacustom_v540tu_ec.rom ec.rom
+
+	cp configs/config.novacustom_v540tu .config
+	make olddefconfig
+	make
+}
+
+# copy and rename the binary, create zip, checksums, uefi capsule
+package() {
+	echo "=> PACKAGE"
+	cp build/coreboot.rom ../../$outfile
+}
