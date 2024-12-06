@@ -49,8 +49,6 @@ build() {
 	cp payload.dump/2\ 8C8CE578-8A3D-4F1C-9935-896185C32DD3/82\ DEB917C0-C56A-4860-A05B-BF2F22EBB717/1\ PE32\ image\ section/body.bin 3rdparty/blobs/mainboard/clevo/mtl-h/LanRom.efi
 	cp src/vendorcode/intel/fsp/fsp2_0/meteorlake/MemInfoHob.h 3rdparty/blobs/mainboard/clevo/mtl-h/FSP/MeteorLake/Include/
 
-	cp ../../novacustom_v540tu_ec.rom ec.rom
-
 	cp configs/config.novacustom_v540tu .config
 	make olddefconfig
 	make
