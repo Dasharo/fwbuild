@@ -51,6 +51,10 @@ build() {
 
 	cp configs/config.novacustom_v540tu .config
 	make olddefconfig
+
+	# Workaround for missing Zeex/subhook submodule
+	git config --global url."https://github.com/Dasharo".insteadOf "https://github.com/Zeex"
+
 	make
 }
 
