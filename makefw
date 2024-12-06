@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -f FWBUILD ]; then
+	echo "Error: No FWBUILD file found. Exiting."
+	exit 1
+fi
+
 source FWBUILD
 
 missing_dependency=0
@@ -14,7 +19,7 @@ fi
 
 if [ $missing_dependency = 1 ]; then
 	echo "Exiting due to missing dependencies!"
-	exit 1
+	exit 2
 fi
 
 mkdir -p src
